@@ -7,6 +7,9 @@ export default {
     DARKGRAY: "#313131",
     GRAY1: "#B8AAAAB5",
     GRAY2: "#767676",
+    GRAY3: "#717171",
+    GRAY4: "#B3B3B3",
+    RED: "#FF0000",
   },
 
   FONTS: {

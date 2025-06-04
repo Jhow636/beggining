@@ -17,11 +17,10 @@ export const Title = styled.Text`
   text-align: center;
 `;
 
-export const Form = styled.View``;
-
 export const Footer = styled.View`
   flex-direction: row;
   padding: 0 ${RFValue(40)}px;
+  margin-top: ${RFValue(10)}px;
 `;
 
 export const Description = styled.Text`

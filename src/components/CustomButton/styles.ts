@@ -9,7 +9,7 @@ export const Button = styled.TouchableOpacity`
   justify-content: center;
   background-color: ${({ theme }: { theme: DefaultTheme }) =>
     theme.COLORS.SECONDARY};
-  margin-top: ${RFValue(25)}px;
+  margin-top: ${RFValue(10)}px;
 `;
 
 export const ButtonText = styled.Text`
