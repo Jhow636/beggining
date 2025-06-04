@@ -1,31 +1,47 @@
 import React from "react";
+import { StatusBar } from "expo-status-bar";
 import {
   Container,
   Title,
-  Form,
   Footer,
   Description,
   CheckBox,
   Strong,
 } from "./styles";
+import {
+  TouchableWithoutFeedback,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import Header from "@components/Header";
-import CustomButton from "@components/CustomButton";
+import Form from "@components/Form";
 
 const SignUp: React.FC = () => {
   return (
-    <Container>
-      <Header />
-      <Title>Cadastro de {"\n"} Usuário</Title>
-      <Form></Form>
-      <CustomButton title="ENTRAR" />
-      <Footer>
-        <CheckBox />
-        <Description>
-          Ao entrar em nossa plataforma, você concorda com os nossos
-          <Strong> Termos</Strong> e<Strong> Políticas de Privacidade</Strong>
-        </Description>
-      </Footer>
-    </Container>
+    <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        enabled
+      >
+        <Container>
+          <StatusBar style="light" />
+          <Header />
+          <Title>Cadastro de {"\n"} Usuário</Title>
+          <Form />
+
+          <Footer>
+            <CheckBox />
+            <Description>
+              Ao entrar em nossa plataforma, você concorda com os nossos
+              <Strong> Termos</Strong> e
+              <Strong> Políticas de Privacidade</Strong>
+            </Description>
+          </Footer>
+        </Container>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 
