@@ -1,8 +1,8 @@
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider } from "styled-components";
 import defaultTheme from "@styles/theme";
+import { NavigationContainer } from "@react-navigation/native";
 
 import {
   StickNoBills_800ExtraBold,
@@ -16,7 +16,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import { useEffect } from "react";
 
-import SignUp from "@screens/SingUp";
+import Routes from "@routes/index";
 
 export default function App() {
   useEffect(() => {
@@ -44,8 +44,10 @@ export default function App() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      <SignUp />
-      <StatusBar style="auto" />
+      <NavigationContainer>
+        <Routes />
+        <StatusBar style="auto" />
+      </NavigationContainer>
     </ThemeProvider>
   );
 }

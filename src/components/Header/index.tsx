@@ -1,10 +1,13 @@
 import React from "react";
 import { Container, Image } from "./styles";
 import IconeFechar from "@assets/images/esc.png";
+import { TouchableOpacityProps } from "react-native";
 
-const Header: React.FC = () => {
+interface HeaderProps extends TouchableOpacityProps {}
+
+const Header: React.FC<HeaderProps> = ({ ...rest }) => {
   return (
-    <Container>
+    <Container {...rest}>
       <Image source={IconeFechar} />
     </Container>
   );
