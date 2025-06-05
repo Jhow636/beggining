@@ -19,6 +19,10 @@ const Home: React.FC = () => {
     navigation.navigate("UserRegistration");
   };
 
+  const handleNavigateToSignIn = () => {
+    navigation.navigate("SignIn");
+  };
+
   return (
     <Container>
       <Content>
@@ -32,7 +36,11 @@ const Home: React.FC = () => {
           title="COMEÇAR AGORA"
           variant="primary"
         />
-        <HomeButton title="JÁ TENHO UMA CONTA" variant="secondary" />
+        <HomeButton
+          title="JÁ TENHO UMA CONTA"
+          variant="secondary"
+          onPress={handleNavigateToSignIn}
+        />
       </ButtonContainer>
     </Container>
   );
