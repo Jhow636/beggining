@@ -4,12 +4,20 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import SignUpProcess from "@screens/SignUpProcess";
 import UserRegistration from "@screens/UserRegistration";
+import Home from "@screens/Home";
 
 const AuthStack = createStackNavigator();
 
 const AuthRoutes = () => {
   return (
     <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Home"
+        component={Home}
+        options={{
+          headerShown: false,
+        }}
+      />
       <AuthStack.Screen
         name="UserRegistration"
         component={UserRegistration}

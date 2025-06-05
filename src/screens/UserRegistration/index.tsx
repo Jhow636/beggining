@@ -9,8 +9,15 @@ import {
 } from "react-native";
 import Header from "@components/Header";
 import UserRegistrationForm from "@components/UserRegistrationForm";
+import { useNavigation } from "@react-navigation/native";
 
 const UserRegistration: React.FC = () => {
+  const navigation = useNavigation();
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
@@ -20,7 +27,7 @@ const UserRegistration: React.FC = () => {
       >
         <Container>
           <StatusBar style="light" />
-          <Header />
+          <Header onPress={handleBack} />
           <Title>Cadastro de {"\n"} Usuário</Title>
           <UserRegistrationForm />
         </Container>

@@ -23,6 +23,9 @@ import SignUpProcessForm from "@components/SignUpProcessForm";
 
 const SignUpProcess: React.FC = () => {
   const navigation = useNavigation();
+  const handleBack = () => {
+    navigation.goBack();
+  };
   return (
     <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
@@ -32,7 +35,7 @@ const SignUpProcess: React.FC = () => {
       >
         <Container>
           <StatusBar style="light" />
-          <Header onPress={navigation.goBack} />
+          <Header onPress={handleBack} />
           <Title>Cadastro de {"\n"} Usuário</Title>
           <SignUpProcessForm />
 
