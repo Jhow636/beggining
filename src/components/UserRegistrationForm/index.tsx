@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import Input from "@components/Input";
 import { Container } from "./style";
 import CustomButton from "@components/CustomButton";
@@ -6,6 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "@contexts/authContext";
 
 const schema = yup
   .object({
@@ -21,9 +22,13 @@ type InputData = {
 
 const UserRegistrationForm: React.FC = () => {
   const navigation = useNavigation();
+  const { setRegistrationData } = useContext(AuthContext);
 
   const handleFormSubmit = (data: InputData) => {
-    console.log("Form data submitted:", data);
+    setRegistrationData({
+      fullName: data.name,
+      username: data.username,
+    });
     navigation.navigate("SignUpProcess");
   };
 

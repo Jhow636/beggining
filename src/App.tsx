@@ -3,6 +3,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider } from "styled-components";
 import defaultTheme from "@styles/theme";
 import { NavigationContainer } from "@react-navigation/native";
+import { AuthProvider } from "./contexts/authContext";
 
 import {
   StickNoBills_800ExtraBold,
@@ -45,7 +46,9 @@ export default function App() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <NavigationContainer>
-        <Routes />
+        <AuthProvider>
+          <Routes />
+        </AuthProvider>
         <StatusBar style="auto" />
       </NavigationContainer>
     </ThemeProvider>

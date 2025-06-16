@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Container } from "./style";
-
+import { AuthContext } from "@contexts/authContext";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Input from "@components/Input";
 import CustomButton from "@components/CustomButton";
+import { useRoute } from "@react-navigation/native";
 
 const schema = yup.object({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -31,6 +32,7 @@ type InputData = {
 };
 
 const SignupProcessForm: React.FC = () => {
+  const { registerUser } = useContext(AuthContext);
   const {
     control,
     formState: { errors },
@@ -38,7 +40,11 @@ const SignupProcessForm: React.FC = () => {
   } = useForm({ resolver: yupResolver(schema) });
 
   const handleFormSubmit = (data: any) => {
-    console.log("Form data submitted:", data);
+    registerUser(data.email, data.password)
+      .then((response: any) => {})
+      .catch((error) => {
+        console.error("Erro ao cadastrar", error);
+      });
   };
 
   return (
