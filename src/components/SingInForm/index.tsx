@@ -1,11 +1,11 @@
 import CustomButton from "@components/CustomButton";
 import Input from "@components/Input";
-import React from "react";
+import React, { useContext } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Container } from "./styles";
-import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "@contexts/authContext";
 
 const schema = yup.object({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -21,8 +21,15 @@ type InputData = {
 };
 
 const SignInForm: React.FC = () => {
+  const { loginUser } = useContext(AuthContext);
   const handleFormSubmit = (data: any) => {
-    console.log("Form data submitted:", data);
+    loginUser(data.email, data.password)
+      .then(() => {
+        console.log("Login successful");
+      })
+      .catch((error) => {
+        console.error("Login failed", error);
+      });
   };
 
   const {
