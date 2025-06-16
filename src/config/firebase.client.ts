@@ -6,16 +6,18 @@ import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import Constants from "expo-constants";
 
 // Suas credenciais do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyA33Po02H_mcJWB9_ixyR6vvRiMl7oAoJI",
-  authDomain: "beginning-1828d.firebaseapp.com",
-  projectId: "beginning-1828d",
-  storageBucket: "beginning-1828d.firebasestorage.app",
-  messagingSenderId: "535982134543",
-  appId: "1:535982134543:web:e3206e8483cb54892f1a7a",
-  measurementId: "G-XRRVQTDJ9S",
+  apiKey: Constants.expoConfig?.extra?.firebaseApiKey ?? "",
+  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain ?? "",
+  projectId: Constants.expoConfig?.extra?.firebaseProjectId ?? "",
+  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket ?? "",
+  messagingSenderId:
+    Constants.expoConfig?.extra?.firebaseMessagingSenderId ?? "",
+  appId: Constants.expoConfig?.extra?.firebaseAppId ?? "",
+  measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId ?? "",
 };
 
 // Inicializa o Firebase
