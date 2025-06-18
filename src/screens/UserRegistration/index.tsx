@@ -1,6 +1,7 @@
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import { Container, Title } from "./styles";
+import { Container } from "./styles";
+import Title from "@components/Title";
 import {
   TouchableWithoutFeedback,
   Keyboard,
@@ -28,7 +29,7 @@ const UserRegistration: React.FC = () => {
         <Container>
           <StatusBar style="light" />
           <Header onPress={handleBack} />
-          <Title>Cadastro de {"\n"} Usuário</Title>
+          <Title text={`Cadastro de${"\n"}Usuário`} />
           <UserRegistrationForm />
         </Container>
       </KeyboardAvoidingView>

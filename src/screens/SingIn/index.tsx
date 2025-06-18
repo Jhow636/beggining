@@ -1,11 +1,10 @@
 import Header from "@components/Header";
-import { Container } from "@screens/SignUpProcess/styles";
 import React from "react";
 import SignInForm from "@components/SingInForm";
 import { useNavigation } from "@react-navigation/native";
-
+import Title from "@components/Title";
 import {
-  Tittle,
+  Container,
   ForgetPassword,
   PrivacyPolicy,
   Strong,
@@ -18,12 +17,16 @@ const SignIn: React.FC = () => {
   const handleGoBack = () => {
     navigation.goBack();
   };
+
+  const handleNavigateToForgotPassword = () => {
+    navigation.navigate("ForgotPassword");
+  };
   return (
     <Container>
       <Header onPress={handleGoBack} />
-      <Tittle>Insira os seus dados</Tittle>
+      <Title text={`Insira os seus ${"\n"}dados`} />
       <SignInForm />
-      <ForgetPassword>
+      <ForgetPassword onPress={handleNavigateToForgotPassword}>
         <ForgetPasswordText>ESQUECI MINHA SENHA</ForgetPasswordText>
       </ForgetPassword>
       <PrivacyPolicy>

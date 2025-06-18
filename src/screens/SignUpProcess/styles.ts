@@ -9,18 +9,11 @@ export const Container = styled.SafeAreaView`
     theme.COLORS.DARKGRAY};
 `;
 
-export const Title = styled.Text`
-  font-size: ${RFValue(32)}px;
-  font-family: ${({ theme }: { theme: DefaultTheme }) =>
-    theme.FONTS.POPPINS.BOLD};
-  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.GRAY1};
-  text-align: center;
-`;
-
 export const Footer = styled.View`
+  flex: 1;
+  justify-content: flex-end;
   flex-direction: row;
-  padding: 0 ${RFValue(40)}px;
-  margin-top: ${RFValue(10)}px;
+  margin-bottom: ${RFValue(30)}px;
 `;
 
 export const Description = styled.Text`
@@ -29,6 +22,7 @@ export const Description = styled.Text`
   font-family: ${({ theme }: { theme: DefaultTheme }) =>
     theme.FONTS.POPPINS.REGULAR};
   text-align: center;
+  padding: 0 ${RFValue(16)}px;
 `;
 
 export const CheckBox = styled(Checkbox).attrs()`
