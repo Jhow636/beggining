@@ -11,9 +11,9 @@ import WelcomeScreen from "@screens/WelcomeScreen";
 
 const AuthStack = createStackNavigator();
 
-const AuthRoutes = () => {
+const AuthRoutes = ({ initialRouteName }: { initialRouteName?: string }) => {
   return (
-    <AuthStack.Navigator>
+    <AuthStack.Navigator initialRouteName={initialRouteName || "Home"}>
       <AuthStack.Screen
         name="Home"
         component={Home}

@@ -13,9 +13,9 @@ import { useNavigation } from "@react-navigation/native";
 
 const WelcomeScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { userProfile } = useContext(AuthContext);
+  const { userProfile, clearNewRegistrationFlag } = useContext(AuthContext);
   const handleStartApp = () => {
-    navigation.navigate("MainPage");
+    clearNewRegistrationFlag();
   };
   return (
     <Container>

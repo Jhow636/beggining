@@ -15,7 +15,7 @@ const AppRoutes = () => {
         tabBarStyle: {
           backgroundColor: theme.COLORS.SECONDARY,
           height: 80,
-          paddingTop: 10,
+          paddingTop: 20,
         },
       }}
     >

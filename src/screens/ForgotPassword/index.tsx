@@ -10,6 +10,7 @@ import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Alert, ActivityIndicator } from "react-native"; // Importe ActivityIndicator para o loading
+import { TouchableWithoutFeedback, Keyboard } from "react-native";
 
 const schema = yup.object({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -68,38 +69,40 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Header onPress={handleGoBack} />
-      <Title text={`Esqueceu sua ${"\n"}senha`} />
-      <ContainerInput>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <Input
-              placeholder="Digite seu e-mail..."
-              onChangeText={onChange}
-              value={value}
-              error={errors.email?.message}
-              keyboardType="email-address" // Melhoria: teclado de e-mail
-              autoCapitalize="none" // Melhoria: desativar auto-capitalização
+    <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+      <Container>
+        <Header onPress={handleGoBack} />
+        <Title text={`Esqueceu sua ${"\n"}senha`} />
+        <ContainerInput>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                placeholder="Digite seu e-mail..."
+                onChangeText={onChange}
+                value={value}
+                error={errors.email?.message}
+                keyboardType="email-address" // Melhoria: teclado de e-mail
+                autoCapitalize="none" // Melhoria: desativar auto-capitalização
+              />
+            )}
+          />
+          <CustomButton
+            title={loading ? "Enviando..." : "Confirmar"} // Mostra "Enviando..." enquanto carrega
+            onPress={handleSubmit(handleSendResetEmail)}
+            disabled={loading} // Desabilita o botão enquanto carrega
+          />
+          {loading && (
+            <ActivityIndicator
+              size="small"
+              color="#0000ff"
+              style={{ marginTop: 10 }}
             />
           )}
-        />
-        <CustomButton
-          title={loading ? "Enviando..." : "Confirmar"} // Mostra "Enviando..." enquanto carrega
-          onPress={handleSubmit(handleSendResetEmail)}
-          disabled={loading} // Desabilita o botão enquanto carrega
-        />
-        {loading && (
-          <ActivityIndicator
-            size="small"
-            color="#0000ff"
-            style={{ marginTop: 10 }}
-          />
-        )}
-      </ContainerInput>
-    </Container>
+        </ContainerInput>
+      </Container>
+    </TouchableWithoutFeedback>
   );
 };
 

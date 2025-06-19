@@ -7,7 +7,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import Input from "@components/Input";
 import CustomButton from "@components/CustomButton";
 import { Alert } from "react-native"; // Importe Alert para exibir mensagens
-import { useNavigation } from "@react-navigation/native"; // Importe useNavigation
+import { useNavigation, NavigationProp } from "@react-navigation/native"; // Importe useNavigation e NavigationProp
 
 const schema = yup.object({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -37,7 +37,13 @@ const SignupProcessForm: React.FC = () => {
   const { handleFinalRegister, updateRegistrationData, registrationData } =
     useAuth();
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation(); // Hook para navegação
+  // Defina o tipo de rotas do seu stack navigator
+  type RootStackParamList = {
+    WelcomeScreen: undefined;
+    // adicione outras rotas aqui se necessário
+  };
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Hook para navegação tipado
 
   const {
     control,

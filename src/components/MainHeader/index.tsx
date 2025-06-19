@@ -12,7 +12,6 @@ import { AuthContext } from "@contexts/authContext";
 
 const MainHeader: React.FC = () => {
   const { userProfile } = React.useContext(AuthContext);
-  console.log("userProfile", userProfile);
   return (
     <Container>
       <MainWrapper>

@@ -6,7 +6,7 @@ import { ActivityIndicator, View } from "react-native";
 // This is just a placeholder. Replace with actual authentication logic.
 
 const Routes = () => {
-  const { user, loading } = React.useContext(AuthContext);
+  const { user, loading, isNewRegistration } = React.useContext(AuthContext);
   if (loading) {
     return (
       <View
@@ -21,7 +21,16 @@ const Routes = () => {
       </View>
     );
   }
-  return user ? <AppRoutes /> : <AuthRoutes />;
+
+  if (user && isNewRegistration) {
+    return <AuthRoutes initialRouteName="WelcomeScreen" />;
+  }
+
+  if (user) {
+    return <AppRoutes />;
+  }
+
+  return <AuthRoutes initialRouteName="Home" />;
 };
 
 export default Routes;
