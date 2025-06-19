@@ -6,12 +6,14 @@ import SignUpProcess from "@screens/SignUpProcess";
 import UserRegistration from "@screens/UserRegistration";
 import Home from "@screens/Home";
 import SignIn from "@screens/SingIn";
+import ForgotPassword from "@screens/ForgotPassword";
+import WelcomeScreen from "@screens/WelcomeScreen";
 
 const AuthStack = createStackNavigator();
 
-const AuthRoutes = () => {
+const AuthRoutes = ({ initialRouteName }: { initialRouteName?: string }) => {
   return (
-    <AuthStack.Navigator>
+    <AuthStack.Navigator initialRouteName={initialRouteName || "Home"}>
       <AuthStack.Screen
         name="Home"
         component={Home}
@@ -35,6 +37,17 @@ const AuthRoutes = () => {
         name="SignIn"
         component={SignIn}
         options={{ headerShown: false }}
+      />
+
+      <AuthStack.Screen
+        name="ForgotPassword"
+        component={ForgotPassword}
+        options={{ headerShown: false }}
+      />
+      <AuthStack.Screen
+        name="WelcomeScreen"
+        component={WelcomeScreen}
+        options={{ headerShown: false, gestureEnabled: false }}
       />
     </AuthStack.Navigator>
   );

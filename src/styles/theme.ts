@@ -9,6 +9,7 @@ export default {
     GRAY2: "#767676",
     GRAY3: "#717171",
     GRAY4: "#B3B3B3",
+    GRAY5: "#7A7A7A",
     RED: "#FF0000",
   },
 

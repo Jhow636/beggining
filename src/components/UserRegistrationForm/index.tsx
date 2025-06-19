@@ -1,12 +1,13 @@
-import React, { useContext } from "react";
+import React from "react"; // Remova useContext, pois usará useAuth
 import Input from "@components/Input";
-import { Container } from "./style";
+import { Container } from "./styles";
 import CustomButton from "@components/CustomButton";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigation } from "@react-navigation/native";
-import { AuthContext } from "@contexts/authContext";
+// Importe useAuth, que é o hook personalizado para seu contexto
+import { useAuth } from "@contexts/authContext";
 
 const schema = yup
   .object({
@@ -22,13 +23,16 @@ type InputData = {
 
 const UserRegistrationForm: React.FC = () => {
   const navigation = useNavigation();
-  const { setRegistrationData } = useContext(AuthContext);
+  // Use o hook personalizado useAuth para acessar setRegistrationData
+  const { updateRegistrationData } = useAuth(); // Use updateRegistrationData
 
   const handleFormSubmit = (data: InputData) => {
-    setRegistrationData({
+    // Chame updateRegistrationData para mesclar os novos dados no contexto
+    updateRegistrationData({
       fullName: data.name,
-      username: data.username,
+      username: data.username, // Mantenha os dados anteriores
     });
+    // Certifique-se de que 'SignUpProcess' é o nome da rota da sua próxima tela de cadastro (e-mail/senha)
     navigation.navigate("SignUpProcess");
   };
 
@@ -36,25 +40,29 @@ const UserRegistrationForm: React.FC = () => {
     control,
     formState: { errors },
     handleSubmit,
-  } = useForm({
+  } = useForm<InputData>({
+    // Adicione a tipagem para useForm
     resolver: yupResolver(schema),
   });
+
   return (
     <Container>
       <Controller
         control={control}
+        name="username"
         render={({ field: { onChange, value } }) => (
           <Input
             placeholder="Digite o nome do seu usuário"
             onChangeText={onChange}
             value={value}
             error={errors.username?.message}
+            autoCapitalize="none" // Boas práticas para nomes de usuário
           />
         )}
-        name="username"
       />
       <Controller
         control={control}
+        name="name"
         render={({ field: { onChange, value } }) => (
           <Input
             placeholder="Digite o seu nome"
@@ -63,7 +71,6 @@ const UserRegistrationForm: React.FC = () => {
             error={errors.name?.message}
           />
         )}
-        name="name"
       />
 
       <CustomButton title="PRÓXIMO" onPress={handleSubmit(handleFormSubmit)} />

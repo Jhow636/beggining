@@ -7,7 +7,7 @@ import {
   Title,
   ButtonContainer,
   Description,
-} from "./style";
+} from "./styles";
 import { useNavigation } from "@react-navigation/native";
 
 import camaleaoImage from "@assets/images/camaleao.png";

@@ -7,16 +7,10 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
-import {
-  Container,
-  Title,
-  CheckBox,
-  Description,
-  Footer,
-  Strong,
-} from "./styles";
+import { Container, CheckBox, Description, Footer, Strong } from "./styles";
 
 import { useNavigation } from "@react-navigation/native";
+import Title from "@components/Title";
 
 import Header from "@components/Header";
 import SignUpProcessForm from "@components/SignUpProcessForm";
@@ -36,7 +30,7 @@ const SignUpProcess: React.FC = () => {
         <Container>
           <StatusBar style="light" />
           <Header onPress={handleBack} />
-          <Title>Cadastro de {"\n"} Usuário</Title>
+          <Title text={`Cadastro de${"\n"}Usuário`} />
           <SignUpProcessForm />
 
           <Footer>

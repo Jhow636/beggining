@@ -1,36 +1,169 @@
-import React, { useState, createContext } from "react";
+// AuthContext.js
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { auth, db } from "@config/firebase.client";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
-export const AuthContext = createContext({});
+// Definindo o tipo para o contexto (melhora a tipagem)
+interface AuthContextType {
+  user: any; // Objeto de usuário do Firebase Auth
+  userProfile: any; // Dados adicionais do Firestore (nome, username)
+  loading: boolean; // Indica se o estado de autenticação está sendo carregado
+  registrationData: { fullName: string; username: string };
+  updateRegistrationData: (newData: {
+    fullName?: string;
+    username?: string;
+    email?: string;
+    password?: string;
+  }) => void;
+  // handleFinalRegister original: (email: string, password: string) => Promise<{ success: boolean; user?: any; error?: any }>;
+  // handleFinalRegister com dados completos:
+  handleFinalRegister: (data: {
+    fullName: string;
+    username: string;
+    email: string;
+    password: string;
+  }) => Promise<{ success: boolean; user?: any; error?: any }>;
+  handleLogin: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; user?: any; error?: any }>;
+  handleLogout: () => Promise<{ success: boolean; error?: any }>;
+  sendPasswordReset: (
+    email: string
+  ) => Promise<{ success: boolean; error?: any; code?: string }>;
+  getUserProfile: (uid: string) => Promise<any | null>;
+  loginUser: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; user?: any; error?: any }>;
+  logoutUser: () => Promise<{ success: boolean; error?: any }>;
+  // >>> NOVAS PROPRIEDADES NO TIPO <<<
+  isNewRegistration: boolean; // Indica se o usuário acabou de se registrar nesta sessão
+  clearNewRegistrationFlag: () => void; // Função para limpar a flag
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  /**
-   * Função para registrar um novo usuário com e-mail, senha e dados adicionais.
-   * Após o registro no Auth, salva nome e nome de usuário no Firestore.
-   * @param {string} email - O e-mail do usuário.
-   * @param {string} password - A senha do usuário.
-   * @param {string} fullName - O nome completo do usuário.
-   * @param {string} username - O nome de usuário.
-   * @returns {Promise<object>} Um objeto contendo o usuário ou um erro.
-   */
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  // >>> NOVO ESTADO AQUI <<<
+  const [isNewRegistration, setIsNewRegistration] = useState(false);
 
   const [registrationData, setRegistrationData] = useState({
     fullName: "",
     username: "",
+    email: "",
+    password: "",
   });
 
-  const registerUser = async (
+  const updateRegistrationData = (newData: {
+    fullName?: string;
+    username?: string;
+    email?: string;
+    password?: string;
+  }) => {
+    setRegistrationData((prevData) => ({ ...prevData, ...newData }));
+  };
+
+  const sendPasswordReset = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      console.log("E-mail de redefinição de senha enviado para:", email);
+      return { success: true };
+    } catch (error: any) {
+      console.error(
+        "Erro ao enviar e-mail de redefinição de senha:",
+        error.code,
+        error.message
+      );
+      return { success: false, error: error.message, code: error.code };
+    }
+  };
+
+  const getUserProfile = async (uid: string) => {
+    try {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        console.log("Dados do perfil do usuário:", docSnap.data());
+        return docSnap.data();
+      } else {
+        console.log("Nenhum perfil de usuário encontrado para o UID:", uid);
+        return null;
+      }
+    } catch (error: any) {
+      console.error(
+        "Erro ao obter perfil do usuário:",
+        error.code,
+        error.message
+      );
+      return { error: error.message, code: error.code };
+    }
+  };
+
+  const loginUser = async (
     email: string,
     password: string
-  ): Promise<object> => {
-    const { fullName, username } = registrationData;
+  ): Promise<{ success: boolean; user?: any; error?: any }> => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      // Se logar com sucesso, não é um "novo registro", então garantimos que a flag é falsa.
+      setIsNewRegistration(false);
+      return { success: true, user: userCredential.user };
+    } catch (error: any) {
+      return { success: false, error: error.message, code: error.code };
+    }
+  };
+
+  const logoutUser = async (): Promise<{ success: boolean; error?: any }> => {
+    try {
+      await signOut(auth);
+      setUser(null); // Limpa o user ao deslogar
+      setUserProfile(null); // Limpa o userProfile ao deslogar
+      setIsNewRegistration(false); // Limpa a flag ao deslogar
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error signing out:", error);
+      return { success: false, error: error.message, code: error.code };
+    }
+  };
+
+  // >>>>>> handleFinalRegister COM A FLAG isNewRegistration <<<<<<
+  const handleFinalRegister = async ({
+    fullName,
+    username,
+    email,
+    password,
+  }: {
+    fullName: string;
+    username: string;
+    email: string;
+    password: string;
+  }): Promise<{ success: boolean; user?: any; error?: any }> => {
+    if (!email || !password || !fullName || !username) {
+      return {
+        success: false,
+        error: "Por favor, preencha todos os dados de registro.",
+      };
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -38,93 +171,91 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password
       );
 
-      const user = userCredential.user;
-
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: user.email,
-        fullName: fullName,
-        username: username,
-        createdAt: new Date(), // Opcional: adicionar um timestamp de criação
-      });
-      return { user: userCredential.user };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  /**
-   * Função para fazer login de um usuário com e-mail e senha.
-   * @param {string} email - O e-mail do usuário.
-   * @param {string} password - A senha do usuário.
-   * @returns {Promise<object>} Um objeto contendo o usuário ou um erro.
-   */
-
-  const loginUser = async (
-    email: string,
-    password: string
-  ): Promise<object> => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
+      const currentUser = userCredential.user;
+      const profileData = {
+        uid: currentUser.uid,
         email,
-        password
-      );
-      return { user: userCredential.user };
-    } catch (error) {
-      return { error };
+        fullName,
+        username,
+        createdAt: new Date(),
+      };
+
+      await setDoc(doc(db, "users", currentUser.uid), profileData);
+
+      setUser(currentUser); // Atualiza o user Auth
+      setUserProfile(profileData); // Atualiza o userProfile com os dados recém-criados
+      setIsNewRegistration(true); // <<< DEFINE A FLAG PARA TRUE AQUI APÓS REGISTRO BEM-SUCEDIDO <<<
+
+      return { success: true, user: currentUser };
+    } catch (error: any) {
+      console.error("Erro no registro:", error.message);
+      setUser(null); // Limpa o user em caso de erro
+      setUserProfile(null); // Limpa o perfil em caso de erro
+      setIsNewRegistration(false); // Garante que a flag é falsa em caso de erro
+      return { success: false, error: error.message, code: error.code };
     }
   };
 
-  const logoutUser = async (): Promise<void> => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+  // >>>>>> FUNÇÃO PARA LIMPAR A FLAG <<<<<<
+  const clearNewRegistrationFlag = () => {
+    setIsNewRegistration(false);
   };
 
-  /**
-   * Observador de estado de autenticação.
-   * Esta função não é assíncrona, ela retorna uma função de unsubscribe.
-   * @param {function} callback - A função a ser chamada quando o estado do usuário muda.
-   * Recebe o objeto de usuário (ou null se deslogado).
-   * @returns {function} Uma função para cancelar a observação.
-   */
-  const subscribeToAuthChanges = (callback: any) => {
-    return onAuthStateChanged(auth, (user) => {
-      callback(user);
+  // >>>>>> useEffect para controlar o estado do usuário (sem a flag) <<<<<<
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true); // Inicia o carregamento
+      setUser(currentUser); // Atualiza o estado do usuário Auth
+
+      if (currentUser) {
+        // Se há um usuário logado, tenta buscar os dados adicionais do Firestore
+        const profile = await getUserProfile(currentUser.uid);
+        if (profile && !profile.error) {
+          setUserProfile(profile);
+        } else {
+          setUserProfile(null); // Limpa o perfil se não for encontrado ou erro
+        }
+        // IMPORTANTE: Aqui, não definimos isNewRegistration como false se já estiver logado.
+        // A flag é controlada APENAS pelo handleFinalRegister e clearNewRegistrationFlag.
+      } else {
+        // Se nenhum usuário logado, limpa os dados do perfil e a flag
+        setUserProfile(null);
+        setIsNewRegistration(false);
+      }
+      setLoading(false); // O carregamento inicial está completo
     });
-  };
 
-  // useEffect(() => {
-  //     // Quando o componente monta, começamos a observar as mudanças de autenticação
-  //     const unsubscribe = subscribeToAuthChanges((currentUser) => {
-  //       setUser(currentUser); // Atualiza o estado do React com o usuário atual
-  //       if (currentUser) {
-  //         console.log('Usuário atual:', currentUser.email);
-  //       } else {
-  //         console.log('Nenhum usuário logado.');
-  //       }
-  //     });
-
-  //     // Quando o componente desmonta, paramos de observar para evitar vazamentos de memória
-  //     return () => unsubscribe();
-  // }, []);
-
-  const [user, setUser] = useState<any>(null);
+    return () => unsubscribe();
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        registerUser,
-        setRegistrationData,
+        user,
+        userProfile,
+        loading,
+        registrationData,
+        updateRegistrationData,
+        handleFinalRegister,
         loginUser,
         logoutUser,
-        subscribeToAuthChanges,
+        getUserProfile,
+        sendPasswordReset,
+        // >>> EXPOÊNDO AS NOVAS PROPRIEDADES <<<
+        isNewRegistration,
+        clearNewRegistrationFlag,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
+};
+
+// 3. Cria um Hook personalizado para facilitar o uso do Context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
