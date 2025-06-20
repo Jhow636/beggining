@@ -2,6 +2,7 @@ export default {
   COLORS: {
     PRIMARY: "#3A3A3A",
     SECONDARY: "#00C2A1",
+    TERTIARY: "#018770",
     WHITE: "#FFFFFF",
     LIGHTGRAY: "#D9D9D9",
     DARKGRAY: "#313131",

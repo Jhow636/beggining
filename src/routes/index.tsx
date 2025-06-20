@@ -3,7 +3,6 @@ import { AuthContext } from "@contexts/authContext";
 import AuthRoutes from "./auth.routes";
 import AppRoutes from "./app.routes";
 import { ActivityIndicator, View } from "react-native";
-// This is just a placeholder. Replace with actual authentication logic.
 
 const Routes = () => {
   const { user, loading, isNewRegistration } = React.useContext(AuthContext);

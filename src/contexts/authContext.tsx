@@ -1,4 +1,3 @@
-// AuthContext.js
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { auth, db } from "@config/firebase.client";
 import {
@@ -11,11 +10,10 @@ import {
 
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
-// Definindo o tipo para o contexto (melhora a tipagem)
 interface AuthContextType {
-  user: any; // Objeto de usuário do Firebase Auth
-  userProfile: any; // Dados adicionais do Firestore (nome, username)
-  loading: boolean; // Indica se o estado de autenticação está sendo carregado
+  user: any;
+  userProfile: any;
+  loading: boolean;
   registrationData: { fullName: string; username: string };
   updateRegistrationData: (newData: {
     fullName?: string;
@@ -23,8 +21,7 @@ interface AuthContextType {
     email?: string;
     password?: string;
   }) => void;
-  // handleFinalRegister original: (email: string, password: string) => Promise<{ success: boolean; user?: any; error?: any }>;
-  // handleFinalRegister com dados completos:
+
   handleFinalRegister: (data: {
     fullName: string;
     username: string;
@@ -45,9 +42,8 @@ interface AuthContextType {
     password: string
   ) => Promise<{ success: boolean; user?: any; error?: any }>;
   logoutUser: () => Promise<{ success: boolean; error?: any }>;
-  // >>> NOVAS PROPRIEDADES NO TIPO <<<
-  isNewRegistration: boolean; // Indica se o usuário acabou de se registrar nesta sessão
-  clearNewRegistrationFlag: () => void; // Função para limpar a flag
+  isNewRegistration: boolean;
+  clearNewRegistrationFlag: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -58,7 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  // >>> NOVO ESTADO AQUI <<<
+
   const [isNewRegistration, setIsNewRegistration] = useState(false);
 
   const [registrationData, setRegistrationData] = useState({
@@ -124,7 +120,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password
       );
-      // Se logar com sucesso, não é um "novo registro", então garantimos que a flag é falsa.
       setIsNewRegistration(false);
       return { success: true, user: userCredential.user };
     } catch (error: any) {
@@ -135,9 +130,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logoutUser = async (): Promise<{ success: boolean; error?: any }> => {
     try {
       await signOut(auth);
-      setUser(null); // Limpa o user ao deslogar
-      setUserProfile(null); // Limpa o userProfile ao deslogar
-      setIsNewRegistration(false); // Limpa a flag ao deslogar
+      setUser(null);
+      setUserProfile(null);
+      setIsNewRegistration(false);
       return { success: true };
     } catch (error: any) {
       console.error("Error signing out:", error);
@@ -145,7 +140,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // >>>>>> handleFinalRegister COM A FLAG isNewRegistration <<<<<<
   const handleFinalRegister = async ({
     fullName,
     username,
@@ -182,47 +176,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       await setDoc(doc(db, "users", currentUser.uid), profileData);
 
-      setUser(currentUser); // Atualiza o user Auth
-      setUserProfile(profileData); // Atualiza o userProfile com os dados recém-criados
-      setIsNewRegistration(true); // <<< DEFINE A FLAG PARA TRUE AQUI APÓS REGISTRO BEM-SUCEDIDO <<<
+      setUser(currentUser);
+      setUserProfile(profileData);
+      setIsNewRegistration(true);
 
       return { success: true, user: currentUser };
     } catch (error: any) {
       console.error("Erro no registro:", error.message);
-      setUser(null); // Limpa o user em caso de erro
-      setUserProfile(null); // Limpa o perfil em caso de erro
-      setIsNewRegistration(false); // Garante que a flag é falsa em caso de erro
+      setUser(null);
+      setUserProfile(null);
+      setIsNewRegistration(false);
       return { success: false, error: error.message, code: error.code };
     }
   };
 
-  // >>>>>> FUNÇÃO PARA LIMPAR A FLAG <<<<<<
   const clearNewRegistrationFlag = () => {
     setIsNewRegistration(false);
   };
 
-  // >>>>>> useEffect para controlar o estado do usuário (sem a flag) <<<<<<
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true); // Inicia o carregamento
-      setUser(currentUser); // Atualiza o estado do usuário Auth
+      setLoading(true);
+      setUser(currentUser);
 
       if (currentUser) {
-        // Se há um usuário logado, tenta buscar os dados adicionais do Firestore
         const profile = await getUserProfile(currentUser.uid);
         if (profile && !profile.error) {
           setUserProfile(profile);
         } else {
-          setUserProfile(null); // Limpa o perfil se não for encontrado ou erro
+          setUserProfile(null);
         }
-        // IMPORTANTE: Aqui, não definimos isNewRegistration como false se já estiver logado.
-        // A flag é controlada APENAS pelo handleFinalRegister e clearNewRegistrationFlag.
       } else {
-        // Se nenhum usuário logado, limpa os dados do perfil e a flag
         setUserProfile(null);
         setIsNewRegistration(false);
       }
-      setLoading(false); // O carregamento inicial está completo
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -241,7 +229,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logoutUser,
         getUserProfile,
         sendPasswordReset,
-        // >>> EXPOÊNDO AS NOVAS PROPRIEDADES <<<
         isNewRegistration,
         clearNewRegistrationFlag,
       }}
@@ -251,11 +238,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// 3. Cria um Hook personalizado para facilitar o uso do Context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
   }
   return context;
 };
