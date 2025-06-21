@@ -4,6 +4,7 @@ import { TouchableOpacityProps } from "react-native";
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
   variant?: "primary" | "secondary" | "default";
+  customBackground?: object;
 }
 
 import { Button, ButtonText } from "./styles";

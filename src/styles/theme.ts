@@ -11,7 +11,9 @@ export default {
     GRAY3: "#717171",
     GRAY4: "#B3B3B3",
     GRAY5: "#7A7A7A",
+    GRAY6: "#B3B3B39E",
     RED: "#FF0000",
+    BLACK: "#000000",
   },
 
   FONTS: {

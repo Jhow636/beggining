@@ -2,8 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MainPage from "@screens/MainPage";
 import TelaAtividade from "@screens/TelaAtividades";
 import TelaDeBusca from "@screens/TelaDeBusca";
-import Menu from "@screens/Menu";
-import TelaMedalhas from "@screens/TelaMedalhas";
+
 import tab1 from "@assets/images/tab1.png";
 import tab2 from "@assets/images/tab2.png";
 import tab3 from "@assets/images/tab3.png";
@@ -11,6 +10,9 @@ import tab4 from "@assets/images/tab4.png";
 import tab5 from "@assets/images/tab5.png";
 import { Image } from "react-native";
 import theme from "@styles/theme";
+import ProfileStackRoute from "./ProfileStack.route";
+import Conquistas from "@screens/Conquistas";
+import AtividadesStack from "./AtividadesStack.routes";
 
 const AppTab = createBottomTabNavigator();
 
@@ -31,14 +33,18 @@ const AppRoutes = () => {
         name="MainPage"
         component={MainPage}
         options={{
-          tabBarIcon: ({ color, size }) => <Image source={tab3} />,
+          tabBarIcon: ({ color, size }) => (
+            <Image source={tab3} style={{ width: 30, height: 30 }} />
+          ),
         }}
       />
       <AppTab.Screen
         name="TelaAtividade"
-        component={TelaAtividade}
+        component={AtividadesStack}
         options={{
-          tabBarIcon: ({ color, size }) => <Image source={tab2} />,
+          tabBarIcon: ({ color, size }) => (
+            <Image source={tab2} style={{ width: 30, height: 30 }} />
+          ),
         }}
       />
       <AppTab.Screen
@@ -49,17 +55,19 @@ const AppRoutes = () => {
         }}
       />
       <AppTab.Screen
-        name="TelaMedalhas"
-        component={TelaMedalhas}
+        name="Conquistas"
+        component={Conquistas}
         options={{
           tabBarIcon: ({ color, size }) => <Image source={tab5} />,
         }}
       />
       <AppTab.Screen
         name="Menu"
-        component={Menu}
+        component={ProfileStackRoute}
         options={{
-          tabBarIcon: ({ color, size }) => <Image source={tab1} />,
+          tabBarIcon: ({ color, size }) => (
+            <Image source={tab1} style={{ width: 28, height: 28 }} />
+          ),
         }}
       />
     </AppTab.Navigator>

@@ -1,13 +1,13 @@
 import CustomButton from "@components/CustomButton";
 import Input from "@components/Input";
-import React, { useState } from "react"; // Adicione useState para o loading
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Container } from "./styles";
-import { useAuth } from "@contexts/authContext"; // Use useAuth hook para consumir o contexto
-import { Alert, ActivityIndicator } from "react-native"; // Importe Alert e ActivityIndicator
-import { useNavigation } from "@react-navigation/native"; // Para navegação
+import { useAuth } from "@contexts/authContext";
+import { Alert } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const schema = yup.object({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -23,10 +23,9 @@ type InputData = {
 };
 
 const SignInForm: React.FC = () => {
-  // Use o hook `useAuth` para acessar o contexto
   const { loginUser } = useAuth();
-  const navigation = useNavigation(); // Hook de navegação
-  const [loading, setLoading] = useState(false); // Estado para controlar o loading
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -37,20 +36,17 @@ const SignInForm: React.FC = () => {
   });
 
   const onSubmit = async (data: InputData) => {
-    // Renomeado para `onSubmit` para clareza
-    setLoading(true); // Ativa o loading
+    setLoading(true);
 
-    const result = await loginUser(data.email, data.password); // Usa async/await para aguardar o resultado
-    setLoading(false); // Desativa o loading
+    const result = await loginUser(data.email, data.password);
+    setLoading(false);
 
     if (result.success) {
       Alert.alert("Sucesso", "Login realizado com sucesso!");
-      // O `onAuthStateChanged` no AuthContext já vai atualizar o estado global
-      // Aqui você pode navegar para a tela principal
-      navigation.navigate("Home"); // Certifique-se de que 'Home' é uma rota válida
+
+      navigation.navigate("Home");
     } else {
       let errorMessage = "Ocorreu um erro ao fazer login.";
-      // Trata erros específicos do Firebase Auth
       switch (result.code) {
         case "auth/user-not-found":
           errorMessage = "Nenhuma conta encontrada com este e-mail.";
@@ -62,7 +58,7 @@ const SignInForm: React.FC = () => {
           errorMessage = "O formato do e-mail é inválido.";
           break;
         default:
-          errorMessage = result.error || "Erro desconhecido."; // Mensagem padrão para outros erros
+          errorMessage = result.error || "Erro desconhecido.";
       }
       Alert.alert("Erro no Login", errorMessage);
     }
@@ -79,8 +75,8 @@ const SignInForm: React.FC = () => {
             onChangeText={onChange}
             value={value}
             error={errors.email?.message}
-            keyboardType="email-address" // Boa prática
-            autoCapitalize="none" // Boa prática
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
         )}
       />
@@ -98,17 +94,10 @@ const SignInForm: React.FC = () => {
         )}
       />
       <CustomButton
-        title={loading ? "Entrando..." : "Entrar"} // Mostra "Entrando..." quando carregando
-        onPress={handleSubmit(onSubmit)} // Chama `onSubmit` através de `handleSubmit`
-        disabled={loading} // Desabilita o botão enquanto carrega
+        title={loading ? "Entrando..." : "Entrar"}
+        onPress={handleSubmit(onSubmit)}
+        disabled={loading}
       />
-      {loading && (
-        <ActivityIndicator
-          size="small"
-          color="#0000ff"
-          style={{ marginTop: 10 }}
-        />
-      )}
     </Container>
   );
 };

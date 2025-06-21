@@ -11,6 +11,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Alert, ActivityIndicator } from "react-native";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
+import { useTheme } from "styled-components";
 
 const schema = yup.object({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
@@ -24,7 +25,7 @@ const ForgotPassword: React.FC = () => {
   const { sendPasswordReset } = useAuth();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-
+  const theme = useTheme();
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -76,6 +77,7 @@ const ForgotPassword: React.FC = () => {
             render={({ field: { onChange, value } }) => (
               <Input
                 placeholder="Digite seu e-mail..."
+                customBackground={theme.COLORS.GRAY6}
                 onChangeText={onChange}
                 value={value}
                 error={errors.email?.message}

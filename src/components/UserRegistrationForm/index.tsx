@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigation } from "@react-navigation/native";
-// Importe useAuth, que é o hook personalizado para seu contexto
+import { useTheme } from "styled-components";
 import { useAuth } from "@contexts/authContext";
 
 const schema = yup
@@ -23,16 +23,15 @@ type InputData = {
 
 const UserRegistrationForm: React.FC = () => {
   const navigation = useNavigation();
-  // Use o hook personalizado useAuth para acessar setRegistrationData
-  const { updateRegistrationData } = useAuth(); // Use updateRegistrationData
+  const theme = useTheme();
+  const { updateRegistrationData } = useAuth();
 
   const handleFormSubmit = (data: InputData) => {
-    // Chame updateRegistrationData para mesclar os novos dados no contexto
     updateRegistrationData({
       fullName: data.name,
-      username: data.username, // Mantenha os dados anteriores
+      username: data.username,
     });
-    // Certifique-se de que 'SignUpProcess' é o nome da rota da sua próxima tela de cadastro (e-mail/senha)
+
     navigation.navigate("SignUpProcess");
   };
 
@@ -41,7 +40,6 @@ const UserRegistrationForm: React.FC = () => {
     formState: { errors },
     handleSubmit,
   } = useForm<InputData>({
-    // Adicione a tipagem para useForm
     resolver: yupResolver(schema),
   });
 
@@ -52,11 +50,12 @@ const UserRegistrationForm: React.FC = () => {
         name="username"
         render={({ field: { onChange, value } }) => (
           <Input
+            customBackground={theme.COLORS.GRAY6}
             placeholder="Digite o nome do seu usuário"
             onChangeText={onChange}
             value={value}
             error={errors.username?.message}
-            autoCapitalize="none" // Boas práticas para nomes de usuário
+            autoCapitalize="none"
           />
         )}
       />
@@ -65,6 +64,7 @@ const UserRegistrationForm: React.FC = () => {
         name="name"
         render={({ field: { onChange, value } }) => (
           <Input
+            customBackground={theme.COLORS.GRAY6}
             placeholder="Digite o seu nome"
             onChangeText={onChange}
             value={value}

@@ -15,17 +15,6 @@ export const MainWrapper = styled.View`
   border-top-right-radius: ${RFValue(20)}px;
   margin-top: ${RFValue(-20)}px;
   padding-top: ${RFValue(20)}px;
-`;
-
-export const Wrapper = styled.View`
-  padding: ${RFValue(16)}px;
-  margin-left: ${RFValue(16)}px;
-`;
-
-export const Title = styled.Text`
-  font-size: ${RFValue(20)}px;
-  font-family: ${({ theme }: { theme: DefaultTheme }) =>
-    theme.FONTS.POPPINS.REGULAR};
-  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.GRAY2};
-  margin-bottom: ${RFValue(16)}px;
+  justify-content: center;
+  align-items: center;
 `;
