@@ -13,7 +13,21 @@ export const MainWrapper = styled.View`
     theme.COLORS.WHITE};
   border-top-left-radius: ${RFValue(20)}px;
   border-top-right-radius: ${RFValue(20)}px;
+`;
 
-  justify-content: center;
-  align-items: center;
+export const Title = styled.Text`
+  font-size: ${RFValue(32)}px;
+  font-family: ${({ theme }: { theme: DefaultTheme }) =>
+    theme.FONTS.POPPINS.BOLD};
+  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.SECONDARY};
+  margin-bottom: ${RFValue(10)}px;
+`;
+export const Description = styled.Text`
+  font-size: ${RFValue(14)}px;
+  text-align: center;
+`;
+
+export const Wrapper = styled.View`
+  flex: 1;
+  padding: ${RFValue(20)}px;
 `;

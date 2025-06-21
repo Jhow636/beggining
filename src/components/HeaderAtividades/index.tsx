@@ -1,17 +1,14 @@
 import React from "react";
-import IconMenu from "@assets/images/iconMenu.png";
-import { Container, Title, Wrapper } from "./styles";
+import { Container } from "./styles";
 import { Image } from "react-native";
-import IconeFechar from "@assets/images/esc.png";
 import { TouchableOpacityProps, TouchableOpacity } from "react-native";
+import IconeFechar from "@assets/images/esc.png";
 
-interface HeaderMenuProps extends TouchableOpacityProps {
-  title: string;
+interface HeaderAtividadesProps extends TouchableOpacityProps {
   iconBack?: boolean;
 }
 
-const HeaderMenu: React.FC<HeaderMenuProps> = ({
-  title,
+const HeaderAtividades: React.FC<HeaderAtividadesProps> = ({
   iconBack,
   ...rest
 }) => {
@@ -25,18 +22,13 @@ const HeaderMenu: React.FC<HeaderMenuProps> = ({
               width: 34,
               height: 34,
               position: "absolute",
-              left: 30,
-              top: -80,
+              right: 130,
+              bottom: -10,
             }}
           />
         </TouchableOpacity>
       )}
-      <Wrapper>
-        <Image source={IconMenu} />
-        <Title>{title}</Title>
-      </Wrapper>
     </Container>
   );
 };
-
-export default HeaderMenu;
+export default HeaderAtividades;

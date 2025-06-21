@@ -30,8 +30,6 @@ export const MainWrapper = styled.View`
     theme.COLORS.WHITE};
   border-top-left-radius: ${RFValue(20)}px;
   border-top-right-radius: ${RFValue(20)}px;
-  margin-top: ${RFValue(-20)}px;
-  padding-top: ${RFValue(20)}px;
 `;
 
 export const UserName = styled.Text`

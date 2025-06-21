@@ -7,6 +7,7 @@ const MainPage: React.FC = () => {
   return (
     <Container>
       <StatusBar />
+
       <MainWrapper>
         <MainHeader />
         <Wrapper>

@@ -30,6 +30,7 @@ export const UserName = styled.Text`
     theme.FONTS.POPPINS.BOLD};
   font-size: ${RFValue(24)}px;
   color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
+  margin-left: ${RFValue(20)}px;
 `;
 
 export const Image = styled.Image`

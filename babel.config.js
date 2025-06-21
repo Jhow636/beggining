@@ -19,6 +19,7 @@ module.exports = function (api) {
             "@screens": "./src/screens",
             "@routes": "./src/routes",
             "@contexts": "./src/contexts",
+            "@data": "./src/data",
           },
         },
       ],

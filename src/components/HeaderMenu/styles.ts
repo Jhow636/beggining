@@ -23,5 +23,3 @@ export const Title = styled.Text`
   color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
   margin-top: ${RFValue(-40)}px;
 `;
-
-export const Image = styled.Image``;
