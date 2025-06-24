@@ -6,7 +6,6 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Input from "@components/Input";
 import CustomButton from "@components/CustomButton";
-import { Alert } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useTheme } from "styled-components";
 
@@ -68,17 +67,6 @@ const SignupProcessForm: React.FC = () => {
 
     if (result.success) {
       navigation.navigate("WelcomeScreen");
-    } else {
-      let errorMessage = "Ocorreu um erro ao cadastrar.";
-
-      switch (result.code) {
-        case "auth/email-already-in-use":
-          errorMessage = "Este e-mail já está em uso.";
-          break;
-        default:
-          errorMessage = result.error || "Erro desconhecido.";
-      }
-      Alert.alert("Erro no Cadastro", errorMessage);
     }
   };
 

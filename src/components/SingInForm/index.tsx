@@ -6,7 +6,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Container } from "./styles";
 import { useAuth } from "@contexts/authContext";
-import { Alert } from "react-native";
+
 import { useNavigation } from "@react-navigation/native";
 
 const schema = yup.object({
@@ -42,25 +42,7 @@ const SignInForm: React.FC = () => {
     setLoading(false);
 
     if (result.success) {
-      Alert.alert("Sucesso", "Login realizado com sucesso!");
-
       navigation.navigate("Home");
-    } else {
-      let errorMessage = "Ocorreu um erro ao fazer login.";
-      switch (result.code) {
-        case "auth/user-not-found":
-          errorMessage = "Nenhuma conta encontrada com este e-mail.";
-          break;
-        case "auth/wrong-password":
-          errorMessage = "Senha incorreta.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "O formato do e-mail é inválido.";
-          break;
-        default:
-          errorMessage = result.error || "Erro desconhecido.";
-      }
-      Alert.alert("Erro no Login", errorMessage);
     }
   };
 

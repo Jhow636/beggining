@@ -28,8 +28,8 @@ const UserRegistrationForm: React.FC = () => {
 
   const handleFormSubmit = (data: InputData) => {
     updateRegistrationData({
-      fullName: data.name,
       username: data.username,
+      fullName: data.name,
     });
 
     navigation.navigate("SignUpProcess");

@@ -19,7 +19,7 @@ const MainHeader: React.FC = () => {
 
         <Wrapper>
           <Image source={Trophy} />
-          <Score>245 pts</Score>
+          <Score>0 pts</Score>
         </Wrapper>
       </MainWrapper>
     </Container>

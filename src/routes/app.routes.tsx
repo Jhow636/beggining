@@ -1,8 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MainPage from "@screens/MainPage";
-import TelaAtividade from "@screens/TelaAtividades";
-import TelaDeBusca from "@screens/TelaDeBusca";
 
+import MateriasStack from "./MateriasStack.routes";
+import MainPageStack from "./MainPageStack";
 import tab1 from "@assets/images/tab1.png";
 import tab2 from "@assets/images/tab2.png";
 import tab3 from "@assets/images/tab3.png";
@@ -31,7 +31,7 @@ const AppRoutes = () => {
     >
       <AppTab.Screen
         name="MainPage"
-        component={MainPage}
+        component={MainPageStack}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Image source={tab3} style={{ width: 30, height: 30 }} />
@@ -48,8 +48,8 @@ const AppRoutes = () => {
         }}
       />
       <AppTab.Screen
-        name="TelaDeBusca"
-        component={TelaDeBusca}
+        name="Materias"
+        component={MateriasStack}
         options={{
           tabBarIcon: ({ color, size }) => <Image source={tab4} />,
         }}

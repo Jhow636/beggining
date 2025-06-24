@@ -35,6 +35,7 @@ const TelaNiveis: React.FC = () => {
           materiaId: materiaDetails.id,
           exerciseId: firstActivityId,
           activityIdsInSequence: materiaDetails.activityIds,
+          materiaTitle: materia.title,
         });
       } else {
         Alert.alert(

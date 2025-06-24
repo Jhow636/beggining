@@ -7,5 +7,13 @@ export const Container = styled.View`
   flex-direction: row;
   height: ${RFValue(60)}px;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 ${RFValue(16)}px;
+`;
+
+export const Title = styled.Text`
+  font-size: ${RFValue(24)}px;
+  font-family: ${({ theme }: { theme: DefaultTheme }) =>
+    theme.FONTS.POPPINS.BOLD};
+  color: ${({ theme }: { theme: DefaultTheme }) => theme.COLORS.WHITE};
 `;

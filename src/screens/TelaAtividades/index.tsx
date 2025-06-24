@@ -10,15 +10,19 @@ const TelaAtividade: React.FC = () => {
   const handleTelaNiveis = () => {
     navigation.navigate("TelaNiveis");
   };
+
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
   return (
     <Container>
-      <HeaderAtividades />
+      <HeaderAtividades iconBack={true} onPress={handleGoBack} />
       <MainWrapper>
         <Wrapper>
           <Title>Como Jogar?</Title>
           <Description>
             Escolha o nivel da sua materia, você deve identificar a resposta
-            correta entre as opções em multipla escolha{" "}
+            correta entre as opções em multipla escolha
           </Description>
           <CustomButton title="Começar" onPress={handleTelaNiveis} />
         </Wrapper>

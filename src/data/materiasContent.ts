@@ -77,6 +77,21 @@ export const ALL_MATERIAS_CONTENT: MateriaContentItem[] = [
       "ex_avancado2_idioms_complex", // Novo exercício 4 de Avançado 2
     ],
   },
+  // ... (suas outras matérias)
+  {
+    id: "7", // << ESTE ID DEVE SER O QUE VOCÊ USA EM TelaTutorialCards
+    title: "Reconhecimento Visual", // Título da matéria de imagem
+    description:
+      "Exercícios de reconhecimento de objetos e conceitos visuais em inglês.",
+    explanationTextId: "visual_intro_exp_id", // Pode ser um ID genérico se não tiver explicação para o tutorial
+    activityIds: [
+      // << AQUI VÃO OS IDS DOS EXERCÍCIOS DE IMAGEM
+      "img_ex1_objects",
+      "img_ex2_clothing",
+      "img_ex3_abstract",
+      // ... outros IDs de exercícios de imagem
+    ],
+  },
   // ... (restante do seu arquivo materiasContent.ts)
 ];
 

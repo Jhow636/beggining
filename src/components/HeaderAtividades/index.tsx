@@ -1,15 +1,17 @@
 import React from "react";
-import { Container } from "./styles";
+import { Container, Title } from "./styles";
 import { Image } from "react-native";
 import { TouchableOpacityProps, TouchableOpacity } from "react-native";
 import IconeFechar from "@assets/images/esc.png";
 
 interface HeaderAtividadesProps extends TouchableOpacityProps {
   iconBack?: boolean;
+  title?: string;
 }
 
 const HeaderAtividades: React.FC<HeaderAtividadesProps> = ({
   iconBack,
+  title,
   ...rest
 }) => {
   return (
@@ -21,13 +23,11 @@ const HeaderAtividades: React.FC<HeaderAtividadesProps> = ({
             style={{
               width: 34,
               height: 34,
-              position: "absolute",
-              right: 130,
-              bottom: -10,
             }}
           />
         </TouchableOpacity>
       )}
+      <Title>{title}</Title>
     </Container>
   );
 };

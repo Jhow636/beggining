@@ -4,43 +4,48 @@ import React, {
   useContext,
   useEffect,
   useCallback,
-  useMemo, // Importe useMemo
+  useMemo,
 } from "react";
 import { auth, db } from "@config/firebase.client";
 import {
+  deleteUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
-  User as FirebaseUser, // Renomeie para evitar conflito com 'user' state
+  User as FirebaseUser,
 } from "firebase/auth";
 
 import {
   doc,
   setDoc,
+  Timestamp,
+  collection, // Keep collection for other Firestore operations if needed
+  query, // Keep query for other Firestore operations if needed
+  where, // Keep where for other Firestore operations if needed
+  getDocs, // Keep getDocs for other Firestore operations if needed
   getDoc,
   updateDoc,
-  collection,
-  getDocs,
-  Timestamp,
+  deleteDoc,
 } from "firebase/firestore";
 
-// --- NOVAS INTERFACES ---
+import { useModal } from "@contexts/ModalProvider"; // Adjust the path as needed
+
+// --- INTERFACES ---
 
 interface UserProfileData {
   uid: string;
   email: string;
   fullName: string;
   username: string;
-  createdAt: Timestamp; // Usar Timestamp do Firestore
-  achievements_earned?: string[]; // IDs das conquistas que o usuário já ganhou
+  createdAt: Timestamp;
+  achievements_earned?: string[];
   progress?: {
     logins_count?: number;
     lessons_completed_count?: number;
     basic_lessons_read?: number;
-    // Adicione outras métricas de progresso conforme necessário
-    [key: string]: number | undefined; // Para permitir chaves dinâmicas no progresso
+    [key: string]: number | undefined;
   };
 }
 
@@ -48,22 +53,18 @@ interface AchievementDefinition {
   id: string;
   name: string;
   description: string;
-  iconUrl?: string; // URL para o ícone da conquista
-  type: string; // Tipo de critério (ex: "login", "lessons_completed", "category_completed")
+  iconUrl?: string;
+  type: string;
   criteria: {
-    // Defina a estrutura dos critérios específicos para cada tipo
     logins_required?: number;
     lessons_count?: number;
     category?: string;
     total_items?: number;
-    // ... outros critérios
   };
 }
 
-// --- INTERFACE DO CONTEXTO DE AUTENTICAÇÃO ---
-
 interface AuthContextType {
-  user: FirebaseUser | null; // Usar a tipagem do Firebase
+  user: FirebaseUser | null;
   userProfile: UserProfileData | null;
   loading: boolean;
   registrationData: {
@@ -78,17 +79,16 @@ interface AuthContextType {
     email?: string;
     password?: string;
   }) => void;
-
   handleFinalRegister: (data: {
     fullName: string;
     username: string;
     email: string;
     password: string;
-  }) => Promise<{ success: boolean; user?: FirebaseUser; error?: any }>; // Use FirebaseUser
+  }) => Promise<{ success: boolean; user?: FirebaseUser; error?: any }>;
   loginUser: (
     email: string,
     password: string
-  ) => Promise<{ success: boolean; user?: FirebaseUser; error?: any }>; // Use FirebaseUser
+  ) => Promise<{ success: boolean; user?: FirebaseUser; error?: any }>;
   logoutUser: () => Promise<{ success: boolean; error?: any }>;
   sendPasswordReset: (
     email: string
@@ -96,13 +96,17 @@ interface AuthContextType {
   getUserProfile: (uid: string) => Promise<UserProfileData | null>;
   isNewRegistration: boolean;
   clearNewRegistrationFlag: () => void;
-  // --- NOVAS FUNÇÕES PARA CONQUISTAS ---
   updateUserProgress: (metric: string, value: number) => Promise<void>;
   checkAndGrantAchievements: (
     profileToCheck?: UserProfileData
   ) => Promise<void>;
   getAllAchievementDefinitions: () => Promise<AchievementDefinition[]>;
   allAchievementDefinitions: AchievementDefinition[];
+  deleteUserAccount: () => Promise<{
+    success: boolean;
+    error?: any;
+    code?: string;
+  }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -125,6 +129,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     password: "",
   });
 
+  const { showModal } = useModal();
+
+  // --- FUNÇÃO verificarUsuarioUnico REMOVIDA AQUI ---
+
   const updateRegistrationData = useCallback(
     (newData: {
       fullName?: string;
@@ -137,85 +145,120 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     []
   );
 
-  const sendPasswordReset = useCallback(async (email: string) => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-      console.log(
-        "[sendPasswordReset] E-mail de redefinição de senha enviado para:",
-        email
-      );
-      return { success: true };
-    } catch (error: any) {
-      console.error(
-        "[sendPasswordReset] Erro ao enviar e-mail de redefinição de senha:",
-        error.code,
-        error.message
-      );
-      return { success: false, error: error.message, code: error.code };
+  const deleteUserAccount = useCallback(async (): Promise<{
+    success: boolean;
+    error?: any;
+    code?: string;
+  }> => {
+    if (!user) {
+      showModal("Você precisa estar logado para excluir sua conta.", "warning");
+      return { success: false, error: "Nenhum usuário logado." };
     }
-  }, []);
+
+    return new Promise((resolve) => {
+      showModal(
+        "Tem certeza que deseja excluir sua conta? Esta ação é irreversível.",
+        "warning",
+        async () => {
+          try {
+            await deleteDoc(doc(db, "users", user.uid));
+            await deleteUser(user);
+
+            setUser(null);
+            setUserProfile(null);
+            setIsNewRegistration(false);
+            showModal("Sua conta foi excluída com sucesso.", "success");
+            resolve({ success: true });
+          } catch (error: any) {
+            if (error.code === "auth/requires-recent-login") {
+              const errorMessage =
+                "Sua sessão expirou. Por favor, faça login novamente para excluir sua conta.";
+              showModal(errorMessage, "error");
+              resolve({
+                success: false,
+                error: errorMessage,
+                code: error.code,
+              });
+            } else {
+              showModal(`Erro ao excluir conta: ${error.message}`, "error");
+              resolve({
+                success: false,
+                error: error.message,
+                code: error.code,
+              });
+            }
+          }
+        },
+        () => {
+          showModal("Exclusão de conta cancelada.", "info");
+          resolve({ success: false, error: "Exclusão cancelada." });
+        }
+      );
+    });
+  }, [user, setUser, setUserProfile, setIsNewRegistration, showModal]);
+
+  const sendPasswordReset = useCallback(
+    async (
+      email: string
+    ): Promise<{ success: boolean; error?: any; code?: string }> => {
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showModal(
+          "Um e-mail para redefinição de senha foi enviado para " + email,
+          "success"
+        );
+        return { success: true };
+      } catch (error: any) {
+        showModal(
+          "Erro ao enviar e-mail de redefinição de senha: " + error.message,
+          "error"
+        );
+        return { success: false, error: error.message, code: error.code };
+      }
+    },
+    [showModal]
+  );
 
   const getUserProfile = useCallback(
     async (uid: string): Promise<UserProfileData | null> => {
-      console.log(`[getUserProfile] Tentando obter perfil para UID: ${uid}`);
       try {
         const docRef = doc(db, "users", uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data() as UserProfileData;
-          console.log("[getUserProfile] Dados do perfil obtidos:", data);
           return data;
         } else {
-          console.log(
-            "[getUserProfile] Nenhum perfil de usuário encontrado para o UID:",
-            uid
-          );
           return null;
         }
       } catch (error: any) {
-        console.error(
-          "[getUserProfile] Erro ao obter perfil do usuário:",
-          error.code,
-          error.message
-        );
+        showModal("Erro ao carregar seu perfil. Tente novamente.", "error");
         return null;
       }
     },
-    []
-  );
-
-  console.log(
-    allAchievementDefinitions.length,
-    "definições de conquistas carregadas."
+    [showModal]
   );
 
   const logoutUser = useCallback(async (): Promise<{
     success: boolean;
     error?: any;
   }> => {
-    console.log("[logoutUser] Tentando deslogar usuário.");
     try {
       await signOut(auth);
       setUser(null);
       setUserProfile(null);
       setIsNewRegistration(false);
-      console.log("[logoutUser] Usuário deslogado com sucesso.");
+      showModal("Você foi desconectado com sucesso!", "success");
       return { success: true };
     } catch (error: any) {
-      console.error("[logoutUser] Erro ao deslogar:", error);
+      showModal("Erro ao desconectar: " + error.message, "error");
       return { success: false, error: error.message, code: error.code };
     }
-  }, []);
-
-  // --- NOVAS FUNÇÕES DE CONQUISTAS E PROGRESSO ---
+  }, [showModal]);
 
   const getAllAchievementDefinitions = useCallback(async (): Promise<
     AchievementDefinition[]
   > => {
-    console.log(
-      "[getAllAchievementDefinitions] Tentando carregar definições de conquistas."
-    );
     try {
       const querySnapshot = await getDocs(
         collection(db, "achievements_definitions")
@@ -227,70 +270,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           ...(doc.data() as AchievementDefinition),
         });
       });
-      console.log(
-        "[getAllAchievementDefinitions] Definições de conquistas carregadas:",
-        definitions.length,
-        definitions
-      );
       setAllAchievementDefinitions(definitions);
       return definitions;
     } catch (error) {
-      console.error(
-        "[getAllAchievementDefinitions] Erro ao obter definições de conquistas:",
-        error
-      );
+      showModal("Erro ao carregar definições de conquistas.", "error");
       return [];
     }
-  }, []);
+  }, [showModal]);
 
   const checkAndGrantAchievements = useCallback(
     async (profileToCheck?: UserProfileData) => {
       const activeUserProfile = profileToCheck || userProfile;
 
-      console.log(
-        "[checkAndGrantAchievements] Iniciando verificação de conquistas."
-      );
-      console.log(
-        "[checkAndGrantAchievements] Usuário atual:",
-        user?.uid || "NULO"
-      );
-      console.log(
-        "[checkAndGrantAchievements] Perfil sendo verificado:",
-        activeUserProfile
-          ? {
-              uid: activeUserProfile.uid,
-              progress: activeUserProfile.progress,
-              earned: activeUserProfile.achievements_earned,
-            }
-          : "NULO"
-      );
-      console.log(
-        "[checkAndGrantAchievements] Definições de conquistas carregadas:",
-        allAchievementDefinitions.length
-      );
-
       if (!user || !activeUserProfile || !allAchievementDefinitions.length) {
-        console.log(
-          "[checkAndGrantAchievements] Condição inicial não atendida (usuário, perfil ou definições ausentes). Retornando."
-        );
         return;
       }
 
       const achievementsToGrant: string[] = [];
       const currentEarned = activeUserProfile.achievements_earned || [];
-      console.log(
-        "[checkAndGrantAchievements] Conquistas já ganhas pelo perfil:",
-        currentEarned
-      );
 
       allAchievementDefinitions.forEach((achievement) => {
-        console.log(
-          `[checkAndGrantAchievements] Verificando conquista: ${achievement.id} (Tipo: ${achievement.type})`
-        );
         if (currentEarned.includes(achievement.id)) {
-          console.log(
-            `[checkAndGrantAchievements] Conquista ${achievement.id} já ganha. Pulando.`
-          );
           return;
         }
 
@@ -298,47 +298,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         switch (achievement.type) {
           case "login":
-            console.log(
-              `[checkAndGrantAchievements] Tipo 'login'. Progresso de logins: ${
-                activeUserProfile.progress?.logins_count || 0
-              }, Requerido: ${achievement.criteria.logins_required || 0}`
-            );
             if (
               activeUserProfile.progress?.logins_count &&
               activeUserProfile.progress.logins_count >=
                 (achievement.criteria.logins_required || 0)
             ) {
               criteriaMet = true;
-              console.log(
-                `[checkAndGrantAchievements] Critério para '${achievement.id}' (login) ATENDIDO.`
-              );
             }
             break;
           case "lessons_completed":
-            console.log(
-              `[checkAndGrantAchievements] Tipo 'lessons_completed'. Progresso: ${
-                activeUserProfile.progress?.lessons_completed_count || 0
-              }, Requerido: ${achievement.criteria.lessons_count || 0}`
-            );
             if (
               activeUserProfile.progress?.lessons_completed_count &&
               activeUserProfile.progress.lessons_completed_count >=
                 (achievement.criteria.lessons_count || 0)
             ) {
               criteriaMet = true;
-              console.log(
-                `[checkAndGrantAchievements] Critério para '${achievement.id}' (lições) ATENDIDO.`
-              );
             }
             break;
           case "category_completed":
-            console.log(
-              `[checkAndGrantAchievements] Tipo 'category_completed'. Categoria: ${
-                achievement.criteria.category || "N/A"
-              }, Progresso 'basic_lessons_read': ${
-                activeUserProfile.progress?.basic_lessons_read || 0
-              }, Requerido: ${achievement.criteria.total_items || 0}`
-            );
             if (
               achievement.criteria.category === "Básico" &&
               activeUserProfile.progress?.basic_lessons_read &&
@@ -346,30 +323,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 (achievement.criteria.total_items || 0)
             ) {
               criteriaMet = true;
-              console.log(
-                `[checkAndGrantAchievements] Critério para '${achievement.id}' (categoria) ATENDIDO.`
-              );
             }
             break;
           default:
-            console.warn(
-              `[checkAndGrantAchievements] Tipo de conquista desconhecido: ${achievement.type}`
-            );
+            break;
         }
 
         if (criteriaMet) {
           achievementsToGrant.push(achievement.id);
-          console.log(
-            `[checkAndGrantAchievements] Conquista '${achievement.id}' adicionada para concessão.`
-          );
         }
       });
 
       if (achievementsToGrant.length > 0) {
-        console.log(
-          "[checkAndGrantAchievements] Conquistas a serem concedidas:",
-          achievementsToGrant
-        );
         const userRef = doc(db, "users", user.uid);
         const newAchievementsEarned = [
           ...currentEarned,
@@ -387,44 +352,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               ...prev,
               achievements_earned: newAchievementsEarned,
             };
-            console.log(
-              "[checkAndGrantAchievements] userProfile no estado com conquistas atualizado:",
-              updatedProfile.achievements_earned
-            );
             return updatedProfile;
           });
-          console.log(
-            `[checkAndGrantAchievements] Firestore atualizado para ${user.uid} com novas conquistas.`
-          );
+
+          if (achievementsToGrant.length === 1) {
+            const grantedAchievement = allAchievementDefinitions.find(
+              (a) => a.id === achievementsToGrant[0]
+            );
+            if (grantedAchievement) {
+              showModal(
+                `Parabéns! Você ganhou a conquista: "${grantedAchievement.name}"!`,
+                "success"
+              );
+            }
+          } else {
+            showModal(
+              `Parabéns! Você ganhou ${achievementsToGrant.length} novas conquistas!`,
+              "success"
+            );
+          }
         } catch (error) {
-          console.error(
-            "[checkAndGrantAchievements] Erro ao conceder conquistas e atualizar Firestore:",
-            error
-          );
+          showModal("Erro ao conceder conquistas.", "error");
         }
-      } else {
-        console.log(
-          "[checkAndGrantAchievements] Nenhuma nova conquista a ser concedida nesta rodada."
-        );
       }
     },
-    [user, userProfile, allAchievementDefinitions]
+    [user, userProfile, allAchievementDefinitions, showModal]
   );
 
   const updateUserProgress = useCallback(
     async (metric: string, value: number) => {
-      console.log(
-        `[updateUserProgress] Chamado para métrica: ${metric}, valor: ${value}`
-      );
       if (!user || !userProfile) {
-        console.warn(
-          "[updateUserProgress] Usuário ou perfil não disponíveis. user:",
-          user ? user.uid : "NULO",
-          "userProfile:",
-          userProfile
-            ? { uid: userProfile.uid, progress: userProfile.progress }
-            : "NULO"
-        );
         return;
       }
 
@@ -432,16 +389,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const currentMetricValue = userProfile.progress?.[metric] || 0;
         const newProgressValue = currentMetricValue + value;
-        console.log(
-          `[updateUserProgress] Progresso atual de ${metric}: ${currentMetricValue}, Novo valor: ${newProgressValue}`
-        );
 
         await updateDoc(userRef, {
           [`progress.${metric}`]: newProgressValue,
         });
-        console.log(
-          `[updateUserProgress] Firestore atualizado para ${metric}: ${newProgressValue}`
-        );
 
         const updatedUserProfile: UserProfileData = {
           ...userProfile,
@@ -451,23 +402,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           },
         };
         setUserProfile(updatedUserProfile);
-        console.log(
-          "[updateUserProgress] userProfile no estado atualizado:",
-          updatedUserProfile.progress
-        );
-
-        console.log(
-          "[updateUserProgress] Chamando checkAndGrantAchievements com o perfil atualizado."
-        );
         await checkAndGrantAchievements(updatedUserProfile);
       } catch (error) {
-        console.error(
-          `[updateUserProgress] Erro ao atualizar progresso de '${metric}':`,
-          error
-        );
+        showModal(`Erro ao atualizar seu progresso para ${metric}.`, "error");
       }
     },
-    [user, userProfile, checkAndGrantAchievements]
+    [user, userProfile, checkAndGrantAchievements, showModal]
   );
 
   const loginUser = useCallback(
@@ -475,46 +415,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email: string,
       password: string
     ): Promise<{ success: boolean; user?: FirebaseUser; error?: any }> => {
-      console.log("[loginUser] Tentando fazer login para:", email);
       try {
         const userCredential = await signInWithEmailAndPassword(
           auth,
           email,
           password
         );
-        console.log(
-          "[loginUser] Login bem-sucedido para UID:",
-          userCredential.user.uid
-        );
         setIsNewRegistration(false);
 
-        // O onAuthStateChanged (useEffect principal) buscará o perfil e iniciará o fluxo de verificação.
-        // Chamaremos updateUserProgress APENAS se o userProfile já existir.
-        // Se for o primeiro login após um registro, o perfil já terá logins_count: 1 (da criação em handleFinalRegister).
-        // Se for login de um usuário existente, o updateUserProgress atualizará.
         if (userProfile) {
-          // Verifica se 'userProfile' já está no estado após o carregamento inicial
           await updateUserProgress("logins_count", 1);
-          console.log(
-            "[loginUser] updateUserProgress (logins_count) disparado após login."
-          );
-        } else {
-          console.log(
-            "[loginUser] userProfile não disponível imediatamente, updateUserProgress será handled pelo useEffect principal após o carregamento do perfil."
-          );
         }
-
+        showModal("Login realizado com sucesso!", "success");
         return { success: true, user: userCredential.user };
       } catch (error: any) {
-        console.error(
-          "[loginUser] Erro ao fazer login:",
-          error.code,
-          error.message
-        );
+        let errorMessage = "Erro ao fazer login. Verifique suas credenciais.";
+        if (error.code === "auth/user-not-found") {
+          errorMessage =
+            "Usuário não encontrado. Crie uma conta ou verifique o e-mail.";
+        } else if (error.code === "auth/wrong-password") {
+          errorMessage = "Senha incorreta. Tente novamente.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "E-mail inválido.";
+        }
+        showModal(errorMessage, "error");
         return { success: false, error: error.message, code: error.code };
       }
     },
-    [userProfile, updateUserProgress] // Adicionado userProfile aqui
+    [userProfile, updateUserProgress, showModal]
   );
 
   const handleFinalRegister = useCallback(
@@ -528,10 +456,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       username: string;
       email: string;
       password: string;
-    }): Promise<{ success: boolean; user?: FirebaseUser; error?: any }> => {
-      console.log("[handleFinalRegister] Iniciando registro para:", email);
+    }): Promise<{
+      success: boolean;
+      user?: FirebaseUser;
+      error?: any;
+      code?: string;
+    }> => {
       if (!email || !password || !fullName || !username) {
-        console.warn("[handleFinalRegister] Dados de registro incompletos.");
+        showModal("Por favor, preencha todos os dados de registro.", "warning");
         return {
           success: false,
           error: "Por favor, preencha todos os dados de registro.",
@@ -539,16 +471,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       try {
+        // --- REMOVIDA A VERIFICAÇÃO DE UNICIDADE DO EMAIL AQUI ---
+        // --- REMOVIDA A VERIFICAÇÃO DE UNICIDADE DO USERNAME AQUI ---
+
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
         const currentUser = userCredential.user;
-        console.log(
-          "[handleFinalRegister] Usuário Firebase Auth criado:",
-          currentUser.uid
-        );
 
         const profileData: UserProfileData = {
           uid: currentUser.uid,
@@ -558,48 +489,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           createdAt: Timestamp.now(),
           achievements_earned: [],
           progress: {
-            logins_count: 1, // <<< INICIALIZA COM 1 LOGIN AQUI para garantir no Firestore
+            logins_count: 1,
             lessons_completed_count: 0,
             basic_lessons_read: 0,
           },
         };
 
         await setDoc(doc(db, "users", currentUser.uid), profileData);
-        console.log(
-          "[handleFinalRegister] Perfil inicial do usuário criado no Firestore para UID:",
-          currentUser.uid,
-          "com progress:",
-          profileData.progress
-        );
 
-        // Define o user e userProfile no estado local IMEDIATAMENTE após a criação
-        // para que as funções de verificação/atualização tenham os dados mais frescos.
         setUser(currentUser);
         setUserProfile(profileData);
         setIsNewRegistration(true);
 
-        console.log(
-          "[handleFinalRegister] Chamando checkAndGrantAchievements diretamente com o profileData inicial."
-        );
-        await checkAndGrantAchievements(profileData); // Usa o perfil que já tem logins_count: 1
-        console.log(
-          "[handleFinalRegister] checkAndGrantAchievements disparado após registro."
-        );
-
+        await checkAndGrantAchievements(profileData);
+        showModal("Cadastro realizado com sucesso! Bem-vindo(a)!", "success");
         return { success: true, user: currentUser };
       } catch (error: any) {
-        console.error(
-          "[handleFinalRegister] Erro no registro:",
-          error.code,
-          error.message
-        );
+        if (error.code === "auth/email-already-in-use") {
+          showModal(
+            "Este e-mail já está cadastrado. Por favor, faça login ou use outro e-mail.",
+            "error"
+          );
+          return {
+            success: false,
+            error: "Este e-mail já está cadastrado.",
+            code: error.code,
+          };
+        } else if (error.code === "auth/weak-password") {
+          showModal(
+            "A senha é muito fraca. Por favor, use uma senha com pelo menos 6 caracteres.",
+            "warning"
+          );
+        } else {
+          showModal("Erro ao registrar: " + error.message, "error");
+        }
+
         setUser(null);
         setUserProfile(null);
         setIsNewRegistration(false);
         return { success: false, error: error.message, code: error.code };
       }
     },
-    [checkAndGrantAchievements]
+    [
+      checkAndGrantAchievements,
+      setUser,
+      setUserProfile,
+      setIsNewRegistration,
+      showModal,
+      // verificarUsuarioUnico REMOVIDO DAQUI
+    ]
   );
 
   const clearNewRegistrationFlag = useCallback(() => {
@@ -607,66 +545,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    console.log(
-      "[useEffect: onAuthStateChanged] Iniciando observador de autenticação."
-    );
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
-      console.log(
-        "[onAuthStateChanged] Estado de autenticação mudou. currentUser:",
-        currentUser ? currentUser.uid : "NULO"
-      );
       setUser(currentUser);
 
       if (currentUser) {
-        const profile = await getUserProfile(currentUser.uid); // Obtém o perfil do Firestore
+        const profile = await getUserProfile(currentUser.uid);
         if (profile) {
-          console.log(
-            "[onAuthStateChanged] Perfil do usuário carregado:",
-            profile.uid
-          );
-          setUserProfile(profile); // Define o perfil do usuário
-          await getAllAchievementDefinitions(); // Carrega as definições de conquistas.
+          setUserProfile(profile);
+          await getAllAchievementDefinitions();
         } else {
-          console.log(
-            "[onAuthStateChanged] Usuário autenticado mas sem perfil no Firestore (UID:",
-            currentUser.uid,
-            "). Definindo userProfile como NULO."
-          );
           setUserProfile(null);
         }
       } else {
-        console.log("[onAuthStateChanged] Usuário deslogado.");
         setUserProfile(null);
         setIsNewRegistration(false);
         setAllAchievementDefinitions([]);
       }
       setLoading(false);
-      console.log(
-        "[onAuthStateChanged] Carregamento inicial de AuthProvider concluído."
-      );
     });
 
     return () => {
-      console.log(
-        "[useEffect: onAuthStateChanged] Desinscrevendo observador de autenticação."
-      );
       unsubscribe();
     };
   }, [getUserProfile, getAllAchievementDefinitions]);
 
   useEffect(() => {
-    console.log("[useEffect: checkAndGrantAchievements trigger]");
-    console.log("   - userProfile presente:", !!userProfile);
-    console.log(
-      "   - allAchievementDefinitions carregado:",
-      allAchievementDefinitions.length > 0
-    );
     if (userProfile && allAchievementDefinitions.length > 0) {
-      console.log(
-        "[useEffect: checkAndGrantAchievements trigger] Disparando checkAndGrantAchievements."
-      );
-      checkAndGrantAchievements(); // Chama a versão sem argumento, que usará o userProfile do estado
+      checkAndGrantAchievements();
     }
   }, [userProfile, allAchievementDefinitions, checkAndGrantAchievements]);
 
@@ -688,6 +594,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       checkAndGrantAchievements,
       getAllAchievementDefinitions,
       allAchievementDefinitions,
+      deleteUserAccount,
     }),
     [
       user,
@@ -706,6 +613,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       checkAndGrantAchievements,
       getAllAchievementDefinitions,
       allAchievementDefinitions,
+      deleteUserAccount,
     ]
   );
 

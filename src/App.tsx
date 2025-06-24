@@ -18,6 +18,8 @@ import {
 import { useEffect } from "react";
 
 import Routes from "@routes/index";
+import { ModalProvider } from "@contexts/ModalProvider";
+import Modal from "@components/Modal";
 
 export default function App() {
   useEffect(() => {
@@ -46,10 +48,13 @@ export default function App() {
   return (
     <ThemeProvider theme={defaultTheme}>
       <NavigationContainer>
-        <AuthProvider>
-          <Routes />
-        </AuthProvider>
-        <StatusBar style="auto" />
+        <ModalProvider>
+          <AuthProvider>
+            <Routes />
+          </AuthProvider>
+          <StatusBar style="auto" />
+          <Modal />
+        </ModalProvider>
       </NavigationContainer>
     </ThemeProvider>
   );

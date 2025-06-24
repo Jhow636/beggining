@@ -1,4 +1,5 @@
 import React from "react";
+import { Alert } from "react-native"; // <<< Importe Alert
 import {
   Container,
   Wrapper,
@@ -8,9 +9,9 @@ import {
   ContainerInput,
   StyledIcon,
 } from "./styles";
-import Icon from "@react-native-vector-icons/feather";
+import Icon from "@react-native-vector-icons/feather"; // Certifique-se que @react-native-vector-icons/feather está instalado
 import CardsMaterias from "@components/CardsMaterias";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native"; // <<< useNavigation já está importado
 
 import {
   ALL_MATERIAS_CONTENT,
@@ -21,23 +22,28 @@ import { useTheme } from "styled-components";
 
 const TelaDeBusca: React.FC = () => {
   const theme = useTheme();
+  const navigation = useNavigation(); // <<< CORREÇÃO: Desestruture navigation do hook
+
   const handleMateriaCardToExplanation = (
     materia: (typeof ALL_MATERIAS_CONTENT)[0]
   ) => {
     const materiaDetails = findMateriaContentById(materia.id);
 
     if (materiaDetails && materiaDetails.explanationTextId) {
+      // Certifique-se que "MateriaExplicacao" é o nome da rota no seu Stack Navigator
       navigation.navigate("MateriaExplicacao", {
         explanationId: materiaDetails.explanationTextId,
         materiaTitle: materia.title,
       });
     } else {
       Alert.alert(
+        // <<< Alert agora funciona
         "Ops!",
         `A matéria '${materia.title}' não possui uma explicação disponível.`
       );
     }
   };
+
   return (
     <Container>
       <Wrapper>

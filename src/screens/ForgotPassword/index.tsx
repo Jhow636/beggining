@@ -9,7 +9,7 @@ import { useAuth } from "@contexts/authContext";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Alert, ActivityIndicator } from "react-native";
+
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useTheme } from "styled-components";
 
@@ -42,27 +42,6 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
     const result = await sendPasswordReset(data.email);
     setLoading(false);
-
-    if (result.success) {
-      Alert.alert(
-        "E-mail Enviado",
-        "Um link para redefinir sua senha foi enviado para seu e-mail. Verifique sua caixa de entrada e spam."
-      );
-      navigation.goBack();
-    } else {
-      let errorMessage = "Ocorreu um erro ao enviar o e-mail de redefinição.";
-      switch (result.code) {
-        case "auth/user-not-found":
-          errorMessage = "Nenhuma conta encontrada com este e-mail.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "O formato do e-mail é inválido.";
-          break;
-        default:
-          errorMessage = result.error || "Erro desconhecido.";
-      }
-      Alert.alert("Erro", errorMessage);
-    }
   };
 
   return (

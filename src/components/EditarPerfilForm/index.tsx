@@ -37,7 +37,7 @@ type InputData = {
 const EditarPerfilForm: React.FC = () => {
   const navigation = useNavigation();
   const theme = useTheme();
-  const { userProfile, loading } = useAuth();
+  const { userProfile, loading, deleteUserAccount } = useAuth();
 
   const {
     control,
@@ -68,6 +68,14 @@ const EditarPerfilForm: React.FC = () => {
       </View>
     );
   }
+
+  const handleDeleteAccount = async () => {
+    const result = await deleteUserAccount();
+    if (result.success) {
+    } else {
+      console.log("Erro ou cancelamento na exclusão:", result.error);
+    }
+  };
 
   return (
     <Container>
@@ -132,7 +140,7 @@ const EditarPerfilForm: React.FC = () => {
             onPress={handleSubmit(onSubmit)}
             disabled={loading}
           />
-          <CustomButton title="Excluir Conta" />
+          <CustomButton title="Excluir Conta " onPress={handleDeleteAccount} />
         </ContainerButtons>
       </ScrollView>
     </Container>
